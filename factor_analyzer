@@ -1,0 +1,69 @@
+# Factor Analysis
+
+pip install factor_analyzer
+
+import numpy as np
+import pandas as pd
+from factor_analyzer import FactorAnalyzer, calculate_kmo, calculate_bartlett_sphericity
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Raw URL of the Excel file
+url = 'https://github.com/data-dude-1118/transportation_prefer/raw/refs/heads/main/transportation.xlsx'
+
+# Read the Excel file directly from GitHub
+df = pd.read_excel(url, engine='openpyxl')
+
+# Display the first few rows
+print(df.head())
+
+# KMO Test
+kmo_all, kmo_model = calculate_kmo(df)
+print(f"KMO Model: {kmo_model}")
+
+# Bartlett's Test
+chi_square_value, p_value = calculate_bartlett_sphericity(df)
+print(f"Bartlett's Test: χ² = {chi_square_value}, p-value = {p_value}")
+
+# Create and fit Factor Analyzer
+fa = FactorAnalyzer(rotation=None)
+fa.fit(df)
+
+# Eigenvalues
+ev, v = fa.get_eigenvalues()
+print("Eigenvalues:", ev)
+
+# Scree Plot
+plt.figure(figsize=(8,5))
+plt.scatter(range(1, df.shape[1]+1), ev)
+plt.plot(range(1, df.shape[1]+1), ev)
+plt.title('Scree Plot')
+plt.xlabel('Number of Factors')
+plt.ylabel('Eigenvalue')
+plt.grid()
+plt.show()
+
+
+# Apply Factor Analysis with 2 factors
+fa = FactorAnalyzer(n_factors=2, rotation='varimax')
+fa.fit(df)
+
+# Factor Loadings
+loadings = fa.loadings_
+print("Factor Loadings:\n", loadings)
+
+# Factor Variance Explained
+variance = fa.get_factor_variance()
+print("Factor Variance Explained:")
+print(variance)
+
+
+# Convert Factor Loadings to DataFrame
+loading_df = pd.DataFrame(loadings, index=df.columns)
+print(loading_df)
+
+# Visualize the Loadings
+plt.figure(figsize=(10,6))
+sns.heatmap(loading_df, annot=True, cmap='viridis')
+plt.title('Factor Loadings')
+plt.show()
